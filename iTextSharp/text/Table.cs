@@ -50,9 +50,7 @@ using iTextSharp.text.pdf;
  * FOR A PARTICULAR PURPOSE. See the GNU LIBRARY GENERAL PUBLIC LICENSE for more
  * details.
  *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
+
  *
  * Some methods in this class were contributed by Geert Poels, Kris Jespers and
  * Steve Ogryzek. Check the CVS repository.

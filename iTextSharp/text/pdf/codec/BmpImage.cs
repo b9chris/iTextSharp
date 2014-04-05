@@ -46,9 +46,7 @@ using iTextSharp.text;
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
  *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
+
  * 
  * This code was originally released in 2001 by SUN (see class
  * com.sun.media.imageioimpl.plugins.bmp.BMPImageReader.java)

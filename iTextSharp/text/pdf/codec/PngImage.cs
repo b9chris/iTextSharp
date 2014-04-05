@@ -48,9 +48,7 @@ using iTextSharp.text.pdf;
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
  *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
+
  *
  * This code is based on a series of source files originally released
  * by SUN in the context of the JAI project. The original code was released 

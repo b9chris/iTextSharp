@@ -44,66 +44,62 @@ using iTextSharp.text;
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
- *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
  */
 
 namespace iTextSharp.text.pdf {
 
-    /**
+	/**
  * The default class that is used to determine whether or not a character
  * is a split character. You can subclass this class to define your own
  * split characters.
  * @since	2.1.2
  */
-    public class DefaultSplitCharacter : ISplitCharacter {
+	public class DefaultSplitCharacter : ISplitCharacter {
 	
-        /**
-         * An instance of the default SplitCharacter.
-         */
-        public static readonly ISplitCharacter DEFAULT = new DefaultSplitCharacter();
+		/**
+		 * An instance of the default SplitCharacter.
+		 */
+		public static readonly ISplitCharacter DEFAULT = new DefaultSplitCharacter();
 	
-        /**
-         * Checks if a character can be used to split a <CODE>PdfString</CODE>.
-         * <P>
-         * for the moment every character less than or equal to SPACE, the character '-'
-         * and some specific unicode ranges are 'splitCharacters'.
-         * 
-         * @param start start position in the array
-         * @param current current position in the array
-         * @param end end position in the array
-         * @param	cc		the character array that has to be checked
-         * @param ck chunk array
-         * @return	<CODE>true</CODE> if the character can be used to split a string, <CODE>false</CODE> otherwise
-         */
-        public bool IsSplitCharacter(int start, int current, int end, char[] cc, PdfChunk[] ck) {
-            char c = GetCurrentCharacter(current, cc, ck);
-            if (c <= ' ' || c == '-' || c == '\u2010') {
-                return true;
-            }
-            if (c < 0x2002)
-                return false;
-            return ((c >= 0x2002 && c <= 0x200b)
-                || (c >= 0x2e80 && c < 0xd7a0)
-                || (c >= 0xf900 && c < 0xfb00)
-                || (c >= 0xfe30 && c < 0xfe50)
-                || (c >= 0xff61 && c < 0xffa0));
-        }
+		/**
+		 * Checks if a character can be used to split a <CODE>PdfString</CODE>.
+		 * <P>
+		 * for the moment every character less than or equal to SPACE, the character '-'
+		 * and some specific unicode ranges are 'splitCharacters'.
+		 * 
+		 * @param start start position in the array
+		 * @param current current position in the array
+		 * @param end end position in the array
+		 * @param	cc		the character array that has to be checked
+		 * @param ck chunk array
+		 * @return	<CODE>true</CODE> if the character can be used to split a string, <CODE>false</CODE> otherwise
+		 */
+		public bool IsSplitCharacter(int start, int current, int end, char[] cc, PdfChunk[] ck) {
+			char c = GetCurrentCharacter(current, cc, ck);
+			if (c <= ' ' || c == '-' || c == '\u2010') {
+				return true;
+			}
+			if (c < 0x2002)
+				return false;
+			return ((c >= 0x2002 && c <= 0x200b)
+				|| (c >= 0x2e80 && c < 0xd7a0)
+				|| (c >= 0xf900 && c < 0xfb00)
+				|| (c >= 0xfe30 && c < 0xfe50)
+				|| (c >= 0xff61 && c < 0xffa0));
+		}
 
-        /**
-         * Returns the current character
-         * @param current current position in the array
-         * @param	cc		the character array that has to be checked
-         * @param ck chunk array
-         * @return	the current character
-         */
-        protected char GetCurrentCharacter(int current, char[] cc, PdfChunk[] ck) {
-            if (ck == null) {
-                return (char)cc[current];
-            }
-            return (char)ck[Math.Min(current, ck.Length - 1)].GetUnicodeEquivalent(cc[current]);
-        }
-    }
+		/**
+		 * Returns the current character
+		 * @param current current position in the array
+		 * @param	cc		the character array that has to be checked
+		 * @param ck chunk array
+		 * @return	the current character
+		 */
+		protected char GetCurrentCharacter(int current, char[] cc, PdfChunk[] ck) {
+			if (ck == null) {
+				return (char)cc[current];
+			}
+			return (char)ck[Math.Min(current, ck.Length - 1)].GetUnicodeEquivalent(cc[current]);
+		}
+	}
 }

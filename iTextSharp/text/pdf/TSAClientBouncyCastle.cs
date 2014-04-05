@@ -54,168 +54,164 @@ using Org.BouncyCastle.Asn1.Tsp;
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
- *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
  */
 
 namespace iTextSharp.text.pdf {
 
-    /**
-    * Time Stamp Authority Client interface implementation using Bouncy Castle
-    * org.bouncycastle.tsp package.
-    * <p>
-    * Created by Aiken Sam, 2006-11-15, refactored by Martin Brunecky, 07/15/2007
-    * for ease of subclassing.
-    * </p>
-    * @since	2.1.6
-    */
-    public class TSAClientBouncyCastle : ITSAClient {
-        /** URL of the Time Stamp Authority */
-	    protected String tsaURL;
-	    /** TSA Username */
-        protected String tsaUsername;
-        /** TSA password */
-        protected String tsaPassword;
-        /** Estimate of the received time stamp token */
-        protected int tokSzEstimate;
-        
-        /**
-        * Creates an instance of a TSAClient that will use BouncyCastle.
-        * @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
-        */
-        public TSAClientBouncyCastle(String url) : this(url, null, null, 4096) {
-        }
-        
-        /**
-        * Creates an instance of a TSAClient that will use BouncyCastle.
-        * @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
-        * @param username String - user(account) name
-        * @param password String - password
-        */
-        public TSAClientBouncyCastle(String url, String username, String password) : this(url, username, password, 4096) {
-        }
-        
-        /**
-        * Constructor.
-        * Note the token size estimate is updated by each call, as the token
-        * size is not likely to change (as long as we call the same TSA using
-        * the same imprint length).
-        * @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
-        * @param username String - user(account) name
-        * @param password String - password
-        * @param tokSzEstimate int - estimated size of received time stamp token (DER encoded)
-        */
-        public TSAClientBouncyCastle(String url, String username, String password, int tokSzEstimate) {
-            this.tsaURL       = url;
-            this.tsaUsername  = username;
-            this.tsaPassword  = password;
-            this.tokSzEstimate = tokSzEstimate;
-        }
-        
-        /**
-        * Get the token size estimate.
-        * Returned value reflects the result of the last succesfull call, padded
-        * @return an estimate of the token size
-        */
-        public int GetTokenSizeEstimate() {
-            return tokSzEstimate;
-        }
-        
-        /**
-        * Get RFC 3161 timeStampToken.
-        * Method may return null indicating that timestamp should be skipped.
-        * @param caller PdfPKCS7 - calling PdfPKCS7 instance (in case caller needs it)
-        * @param imprint byte[] - data imprint to be time-stamped
-        * @return byte[] - encoded, TSA signed data of the timeStampToken
-        * @throws Exception - TSA request failed
-        * @see com.lowagie.text.pdf.TSAClient#getTimeStampToken(com.lowagie.text.pdf.PdfPKCS7, byte[])
-        */
-        public byte[] GetTimeStampToken(PdfPKCS7 caller, byte[] imprint) {
-            return GetTimeStampToken(imprint);
-        }
-        
-        /**
-        * Get timestamp token - Bouncy Castle request encoding / decoding layer
-        */
-        protected internal byte[] GetTimeStampToken(byte[] imprint) {
-            byte[] respBytes = null;
-            // Setup the time stamp request
-            TimeStampRequestGenerator tsqGenerator = new TimeStampRequestGenerator();
-            tsqGenerator.SetCertReq(true);
-            // tsqGenerator.setReqPolicy("1.3.6.1.4.1.601.10.3.1");
-            BigInteger nonce = BigInteger.ValueOf(DateTime.Now.Ticks + Environment.TickCount);
-            TimeStampRequest request = tsqGenerator.Generate(X509ObjectIdentifiers.IdSha1.Id, imprint, nonce);
-            byte[] requestBytes = request.GetEncoded();
-            
-            // Call the communications layer
-            respBytes = GetTSAResponse(requestBytes);
-            
-            // Handle the TSA response
-            TimeStampResponse response = new TimeStampResponse(respBytes);
-            
-            // validate communication level attributes (RFC 3161 PKIStatus)
-            response.Validate(request);
-            PkiFailureInfo failure = response.GetFailInfo();
-            int value = (failure == null) ? 0 : failure.IntValue;
-            if (value != 0) {
-                // @todo: Translate value of 15 error codes defined by PKIFailureInfo to string
-                throw new Exception("Invalid TSA '" + tsaURL + "' response, code " + value);
-            }
-            // @todo: validate the time stap certificate chain (if we want
-            //        assure we do not sign using an invalid timestamp).
-            
-            // extract just the time stamp token (removes communication status info)
-            TimeStampToken  tsToken = response.TimeStampToken;
-            if (tsToken == null) {
-                throw new Exception("TSA '" + tsaURL + "' failed to return time stamp token: " + response.GetStatusString());
-            }
-            TimeStampTokenInfo info = tsToken.TimeStampInfo; // to view details
-            byte[] encoded = tsToken.GetEncoded();
-            
-            // Update our token size estimate for the next call (padded to be safe)
-            this.tokSzEstimate = encoded.Length + 32;
-            return encoded;
-        }
-        
-        /**
-        * Get timestamp token - communications layer
-        * @return - byte[] - TSA response, raw bytes (RFC 3161 encoded)
-        */
-        protected internal virtual byte[] GetTSAResponse(byte[] requestBytes) {
-            HttpWebRequest con = (HttpWebRequest)WebRequest.Create(tsaURL);
-            con.ContentLength = requestBytes.Length;
-            con.ContentType = "application/timestamp-query";
-            con.Method = "POST";
-            if ((tsaUsername != null) && !tsaUsername.Equals("") ) {
-                string authInfo = tsaUsername + ":" + tsaPassword;
-                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-                con.Headers["Authorization"] = "Basic " + authInfo;
-            }
-            Stream outp = con.GetRequestStream();
-            outp.Write(requestBytes, 0, requestBytes.Length);
-            outp.Close();
-            HttpWebResponse response = (HttpWebResponse)con.GetResponse();
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new IOException("Invalid HTTP response: " + (int)response.StatusCode);
-            Stream inp = response.GetResponseStream();
+	/**
+	* Time Stamp Authority Client interface implementation using Bouncy Castle
+	* org.bouncycastle.tsp package.
+	* <p>
+	* Created by Aiken Sam, 2006-11-15, refactored by Martin Brunecky, 07/15/2007
+	* for ease of subclassing.
+	* </p>
+	* @since	2.1.6
+	*/
+	public class TSAClientBouncyCastle : ITSAClient {
+		/** URL of the Time Stamp Authority */
+		protected String tsaURL;
+		/** TSA Username */
+		protected String tsaUsername;
+		/** TSA password */
+		protected String tsaPassword;
+		/** Estimate of the received time stamp token */
+		protected int tokSzEstimate;
+		
+		/**
+		* Creates an instance of a TSAClient that will use BouncyCastle.
+		* @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
+		*/
+		public TSAClientBouncyCastle(String url) : this(url, null, null, 4096) {
+		}
+		
+		/**
+		* Creates an instance of a TSAClient that will use BouncyCastle.
+		* @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
+		* @param username String - user(account) name
+		* @param password String - password
+		*/
+		public TSAClientBouncyCastle(String url, String username, String password) : this(url, username, password, 4096) {
+		}
+		
+		/**
+		* Constructor.
+		* Note the token size estimate is updated by each call, as the token
+		* size is not likely to change (as long as we call the same TSA using
+		* the same imprint length).
+		* @param url String - Time Stamp Authority URL (i.e. "http://tsatest1.digistamp.com/TSA")
+		* @param username String - user(account) name
+		* @param password String - password
+		* @param tokSzEstimate int - estimated size of received time stamp token (DER encoded)
+		*/
+		public TSAClientBouncyCastle(String url, String username, String password, int tokSzEstimate) {
+			this.tsaURL       = url;
+			this.tsaUsername  = username;
+			this.tsaPassword  = password;
+			this.tokSzEstimate = tokSzEstimate;
+		}
+		
+		/**
+		* Get the token size estimate.
+		* Returned value reflects the result of the last succesfull call, padded
+		* @return an estimate of the token size
+		*/
+		public int GetTokenSizeEstimate() {
+			return tokSzEstimate;
+		}
+		
+		/**
+		* Get RFC 3161 timeStampToken.
+		* Method may return null indicating that timestamp should be skipped.
+		* @param caller PdfPKCS7 - calling PdfPKCS7 instance (in case caller needs it)
+		* @param imprint byte[] - data imprint to be time-stamped
+		* @return byte[] - encoded, TSA signed data of the timeStampToken
+		* @throws Exception - TSA request failed
+		* @see com.lowagie.text.pdf.TSAClient#getTimeStampToken(com.lowagie.text.pdf.PdfPKCS7, byte[])
+		*/
+		public byte[] GetTimeStampToken(PdfPKCS7 caller, byte[] imprint) {
+			return GetTimeStampToken(imprint);
+		}
+		
+		/**
+		* Get timestamp token - Bouncy Castle request encoding / decoding layer
+		*/
+		protected internal byte[] GetTimeStampToken(byte[] imprint) {
+			byte[] respBytes = null;
+			// Setup the time stamp request
+			TimeStampRequestGenerator tsqGenerator = new TimeStampRequestGenerator();
+			tsqGenerator.SetCertReq(true);
+			// tsqGenerator.setReqPolicy("1.3.6.1.4.1.601.10.3.1");
+			BigInteger nonce = BigInteger.ValueOf(DateTime.Now.Ticks + Environment.TickCount);
+			TimeStampRequest request = tsqGenerator.Generate(X509ObjectIdentifiers.IdSha1.Id, imprint, nonce);
+			byte[] requestBytes = request.GetEncoded();
+			
+			// Call the communications layer
+			respBytes = GetTSAResponse(requestBytes);
+			
+			// Handle the TSA response
+			TimeStampResponse response = new TimeStampResponse(respBytes);
+			
+			// validate communication level attributes (RFC 3161 PKIStatus)
+			response.Validate(request);
+			PkiFailureInfo failure = response.GetFailInfo();
+			int value = (failure == null) ? 0 : failure.IntValue;
+			if (value != 0) {
+				// @todo: Translate value of 15 error codes defined by PKIFailureInfo to string
+				throw new Exception("Invalid TSA '" + tsaURL + "' response, code " + value);
+			}
+			// @todo: validate the time stap certificate chain (if we want
+			//        assure we do not sign using an invalid timestamp).
+			
+			// extract just the time stamp token (removes communication status info)
+			TimeStampToken  tsToken = response.TimeStampToken;
+			if (tsToken == null) {
+				throw new Exception("TSA '" + tsaURL + "' failed to return time stamp token: " + response.GetStatusString());
+			}
+			TimeStampTokenInfo info = tsToken.TimeStampInfo; // to view details
+			byte[] encoded = tsToken.GetEncoded();
+			
+			// Update our token size estimate for the next call (padded to be safe)
+			this.tokSzEstimate = encoded.Length + 32;
+			return encoded;
+		}
+		
+		/**
+		* Get timestamp token - communications layer
+		* @return - byte[] - TSA response, raw bytes (RFC 3161 encoded)
+		*/
+		protected internal virtual byte[] GetTSAResponse(byte[] requestBytes) {
+			HttpWebRequest con = (HttpWebRequest)WebRequest.Create(tsaURL);
+			con.ContentLength = requestBytes.Length;
+			con.ContentType = "application/timestamp-query";
+			con.Method = "POST";
+			if ((tsaUsername != null) && !tsaUsername.Equals("") ) {
+				string authInfo = tsaUsername + ":" + tsaPassword;
+				authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+				con.Headers["Authorization"] = "Basic " + authInfo;
+			}
+			Stream outp = con.GetRequestStream();
+			outp.Write(requestBytes, 0, requestBytes.Length);
+			outp.Close();
+			HttpWebResponse response = (HttpWebResponse)con.GetResponse();
+			if (response.StatusCode != HttpStatusCode.OK)
+				throw new IOException("Invalid HTTP response: " + (int)response.StatusCode);
+			Stream inp = response.GetResponseStream();
 
-            MemoryStream baos = new MemoryStream();
-            byte[] buffer = new byte[1024];
-            int bytesRead = 0;
-            while ((bytesRead = inp.Read(buffer, 0, buffer.Length)) > 0) {
-                baos.Write(buffer, 0, bytesRead);
-            }
-            inp.Close();
-            response.Close();
-            byte[] respBytes = baos.ToArray();
-            
-            String encoding = response.ContentEncoding;
-            if (encoding != null && Util.EqualsIgnoreCase(encoding, "base64")) {
-                respBytes = Convert.FromBase64String(Encoding.ASCII.GetString(respBytes));
-            }
-            return respBytes;
-        }    
-    }
+			MemoryStream baos = new MemoryStream();
+			byte[] buffer = new byte[1024];
+			int bytesRead = 0;
+			while ((bytesRead = inp.Read(buffer, 0, buffer.Length)) > 0) {
+				baos.Write(buffer, 0, bytesRead);
+			}
+			inp.Close();
+			response.Close();
+			byte[] respBytes = baos.ToArray();
+			
+			String encoding = response.ContentEncoding;
+			if (encoding != null && Util.EqualsIgnoreCase(encoding, "base64")) {
+				respBytes = Convert.FromBase64String(Encoding.ASCII.GetString(respBytes));
+			}
+			return respBytes;
+		}    
+	}
 }

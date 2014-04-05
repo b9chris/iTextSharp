@@ -41,81 +41,77 @@ using System;
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
- *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
  */
 
 namespace iTextSharp.text {
 
-    /**
-    * Chapter with auto numbering.
-    *
-    * @author Michael Niedermair
-    */
-    public class ChapterAutoNumber : Chapter {
+	/**
+	* Chapter with auto numbering.
+	*
+	* @author Michael Niedermair
+	*/
+	public class ChapterAutoNumber : Chapter {
 
-        /**
-        * Is the chapter number already set?
-        * @since	2.1.4
-        */
-        protected bool numberSet = false;
+		/**
+		* Is the chapter number already set?
+		* @since	2.1.4
+		*/
+		protected bool numberSet = false;
 
-        /**
-        * Create a new object.
-        *
-        * @param para     the Chapter title (as a <CODE>Paragraph</CODE>)
-        */
-        public ChapterAutoNumber(Paragraph para) : base(para, 0) {
-        }
+		/**
+		* Create a new object.
+		*
+		* @param para     the Chapter title (as a <CODE>Paragraph</CODE>)
+		*/
+		public ChapterAutoNumber(Paragraph para) : base(para, 0) {
+		}
 
-        /**
-        * Create a new objet.
-        * 
-        * @param title     the Chapter title (as a <CODE>String</CODE>)
-        */
-        public ChapterAutoNumber(String title) : base(title, 0) {
-        }
+		/**
+		* Create a new objet.
+		* 
+		* @param title     the Chapter title (as a <CODE>String</CODE>)
+		*/
+		public ChapterAutoNumber(String title) : base(title, 0) {
+		}
 
-        /**
-        * Create a new section for this chapter and ad it.
-        *
-        * @param title  the Section title (as a <CODE>String</CODE>)
-        * @return Returns the new section.
-        */
-        public override Section AddSection(String title) {
-    	    if (AddedCompletely) {
-    		    throw new InvalidOperationException("This LargeElement has already been added to the Document.");
-    	    }
-            return AddSection(title, 2);
-        }
+		/**
+		* Create a new section for this chapter and ad it.
+		*
+		* @param title  the Section title (as a <CODE>String</CODE>)
+		* @return Returns the new section.
+		*/
+		public override Section AddSection(String title) {
+			if (AddedCompletely) {
+				throw new InvalidOperationException("This LargeElement has already been added to the Document.");
+			}
+			return AddSection(title, 2);
+		}
 
-        /**
-        * Create a new section for this chapter and add it.
-        *
-        * @param title  the Section title (as a <CODE>Paragraph</CODE>)
-        * @return Returns the new section.
-        */
-        public override Section AddSection(Paragraph title) {
-    	    if (AddedCompletely) {
-    		    throw new InvalidOperationException("This LargeElement has already been added to the Document.");
-    	    }
-            return AddSection(title, 2);
-        }
+		/**
+		* Create a new section for this chapter and add it.
+		*
+		* @param title  the Section title (as a <CODE>Paragraph</CODE>)
+		* @return Returns the new section.
+		*/
+		public override Section AddSection(Paragraph title) {
+			if (AddedCompletely) {
+				throw new InvalidOperationException("This LargeElement has already been added to the Document.");
+			}
+			return AddSection(title, 2);
+		}
 
-        /**
-        * Changes the Chapter number.
-        * @param	number	the new chapter number
-        * @since 2.1.4
-        */
-        public int SetAutomaticNumber(int number) {
-    	    if (!numberSet) {
-        	    number++;
-        	    base.SetChapterNumber(number);
-        	    numberSet = true;
-    	    }
-		    return number;
-        }
-    }
+		/**
+		* Changes the Chapter number.
+		* @param	number	the new chapter number
+		* @since 2.1.4
+		*/
+		public int SetAutomaticNumber(int number) {
+			if (!numberSet) {
+				number++;
+				base.SetChapterNumber(number);
+				numberSet = true;
+			}
+			return number;
+		}
+	}
 }

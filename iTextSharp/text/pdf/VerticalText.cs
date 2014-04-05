@@ -45,10 +45,6 @@ using iTextSharp.text;
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Library general Public License for more
  * details.
- *
- * If you didn't download this code from the following link, you should check if
- * you aren't using an obsolete version:
- * http://www.lowagie.com/iText/
  */
 namespace iTextSharp.text.pdf {
 
@@ -70,39 +66,39 @@ namespace iTextSharp.text.pdf {
 
 		/** The <CODE>PdfContent</CODE> where the text will be written to. */    
 		protected PdfContentByte text;
-    
+	
 		/** The column Element. Default is left Element. */
 		protected int alignment = Element.ALIGN_LEFT;
 
 		/** Marks the chunks to be eliminated when the line is written. */
 		protected int currentChunkMarker = -1;
-    
+	
 		/** The chunk created by the splitting. */
 		protected PdfChunk currentStandbyChunk;
-    
+	
 		/** The chunk created by the splitting. */
 		protected string splittedChunkText;
 
 		/** The leading
 		 */    
 		protected float leading;
-    
+	
 		/** The X coordinate.
 		 */    
 		protected float startX;
-    
+	
 		/** The Y coordinate.
 		 */    
 		protected float startY;
-    
+	
 		/** The maximum number of vertical lines.
 		 */    
 		protected int maxLines;
-    
+	
 		/** The height of the text.
 		 */    
 		protected float height;
-    
+	
 		/** Creates new VerticalText
 		 * @param text the place where the text will be written to. Can
 		 * be a template.
@@ -110,7 +106,7 @@ namespace iTextSharp.text.pdf {
 		public VerticalText(PdfContentByte text) {
 			this.text = text;
 		}
-    
+	
 		/**
 		 * Adds a <CODE>Phrase</CODE> to the current text array.
 		 * @param phrase the text
@@ -120,7 +116,7 @@ namespace iTextSharp.text.pdf {
 				chunks.Add(new PdfChunk(c, null));
 			}
 		}
-    
+	
 		/**
 		 * Adds a <CODE>Chunk</CODE> to the current text array.
 		 * @param chunk the text
@@ -143,7 +139,7 @@ namespace iTextSharp.text.pdf {
 			this.maxLines = maxLines;
 			Leading = leading;
 		}
-    
+	
 		/** Gets the separation between the vertical lines.
 		 * @return the vertical line separation
 		 */    
@@ -156,7 +152,7 @@ namespace iTextSharp.text.pdf {
 				this.leading = value;
 			}
 		}
-    
+	
 		/**
 		 * Creates a line from the chunk array.
 		 * @param width the width of the line
@@ -181,7 +177,7 @@ namespace iTextSharp.text.pdf {
 			}
 			return line;
 		}
-    
+	
 		/**
 		 * Normalizes the list of chunks when the line is accepted.
 		 */
@@ -208,7 +204,7 @@ namespace iTextSharp.text.pdf {
 		public int Go() {
 			return Go(false);
 		}
-    
+	
 		/**
 		 * Outputs the lines to the document. The output can be simulated.
 		 * @param simulate <CODE>true</CODE> to simulate the writting to the document
@@ -255,7 +251,7 @@ namespace iTextSharp.text.pdf {
 			}
 			return status;
 		}
-    
+	
 		internal void WriteLine(PdfLine line, PdfContentByte text, PdfContentByte graphics)  {
 			PdfFont currentFont = null;
 			foreach(PdfChunk chunk in line) {
@@ -271,7 +267,7 @@ namespace iTextSharp.text.pdf {
 					text.ResetRGBColorFill();
 			}
 		}
-    
+	
 		/** Sets the new text origin.
 		 * @param startX the X coordinate
 		 * @param startY the Y coordinate
@@ -280,7 +276,7 @@ namespace iTextSharp.text.pdf {
 			this.startX = startX;
 			this.startY = startY;
 		}
-    
+	
 		/** Gets the X coordinate where the next line will be writen. This value will change
 		 * after each call to <code>go()</code>.
 		 * @return  the X coordinate
@@ -299,7 +295,7 @@ namespace iTextSharp.text.pdf {
 				return startY;
 			}
 		}
-    
+	
 		/** Gets the maximum number of available lines. This value will change
 		 * after each call to <code>go()</code>.
 		 * @return Value of property maxLines.
@@ -313,7 +309,7 @@ namespace iTextSharp.text.pdf {
 				this.maxLines = value;
 			}
 		}
-    
+	
 		/** Gets the height of the line
 		 * @return the height
 		 */
@@ -326,7 +322,7 @@ namespace iTextSharp.text.pdf {
 				this.height = value;
 			}
 		}
-    
+	
 		/**
 		 * Gets the Element.
 		 * @return the alignment
